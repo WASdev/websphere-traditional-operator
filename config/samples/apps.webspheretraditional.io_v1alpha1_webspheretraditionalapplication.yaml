@@ -1,0 +1,6 @@
+apiVersion: apps.webspheretraditional.io.ibm/v1alpha1
+kind: WebsphereTraditionalApplication
+metadata:
+  name: webspheretraditionalapplication-sample
+spec:
+  # Add fields here

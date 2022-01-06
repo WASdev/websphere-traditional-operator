@@ -1,0 +1,48 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: '[]'
+    capabilities: Basic Install
+  name: websphere-traditional-operator.v0.0.0
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - description: WebsphereTraditionalApplication is the Schema for the webspheretraditionalapplications
+        API
+      displayName: Websphere Traditional Application
+      kind: WebsphereTraditionalApplication
+      name: webspheretraditionalapplications.apps.webspheretraditional.io.ibm
+      version: v1alpha1
+  description: Deploy and manage applications running on Websphere Traditional
+  displayName: Websphere Traditional Operator
+  icon:
+  - base64data: ""
+    mediatype: ""
+  install:
+    spec:
+      deployments: null
+    strategy: ""
+  installModes:
+  - supported: false
+    type: OwnNamespace
+  - supported: false
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  keywords:
+  - Websphere
+  links:
+  - name: Websphere Traditional Operator
+    url: https://websphere-traditional-operator.domain
+  maintainers:
+  - email: Bradley.Mayo@ibm.com
+    name: Bradley Mayo
+  maturity: alpha
+  provider:
+    name: IBM
+  version: 0.0.0
