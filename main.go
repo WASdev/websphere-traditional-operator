@@ -87,7 +87,7 @@ func main() {
 		MetricsBindAddress: "0",
 		Port:               9443,
 		LeaderElection:     enableLeaderElection,
-		LeaderElectionID:   "apps.webspheretraditional.io",
+		LeaderElectionID:   "apps.webspheretraditional.io.ibm",
 		LeaseDuration:      &leaseDuration,
 		RenewDeadline:      &renewDeadline,
 		Namespace:          watchNamespace,

@@ -64,7 +64,7 @@ type ReconcileWebsphereTraditional struct {
 	watchNamespaces []string
 }
 
-const applicationFinalizer = "finalizer.webspheretraditionalapplications.apps.webspheretraditional.io.ibm"
+const applicationFinalizer = "finalizer.wtapps.apps.webspheretraditional.io.ibm"
 
 //+kubebuilder:rbac:groups=apps.webspheretraditional.io.ibm,resources=webspheretraditionalapplications;webspheretraditionalapplications/status;webspheretraditionalapplications/finalizers,verbs=*,namespace=websphere-traditional-operator-system
 // +kubebuilder:rbac:groups=apps,resources=deployments;statefulsets,verbs=*,namespace=websphere-traditional-operator-system
