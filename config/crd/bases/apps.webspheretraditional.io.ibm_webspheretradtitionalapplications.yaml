@@ -683,6 +683,26 @@ spec:
               applicationVersion:
                 description: Version of the application.
                 type: string
+              autoscaling:
+                properties:
+                  maxReplicas:
+                    description: Required field for autoscaling. Upper limit for the
+                      number of pods that can be set by the autoscaler. Parameter
+                      .spec.resources.requests.cpu must also be specified.
+                    format: int32
+                    minimum: 1
+                    type: integer
+                  minReplicas:
+                    description: Lower limit for the number of pods that can be set
+                      by the autoscaler.
+                    format: int32
+                    type: integer
+                  targetCPUUtilizationPercentage:
+                    description: Target average CPU utilization, represented as a
+                      percentage of requested CPU, over all the pods.
+                    format: int32
+                    type: integer
+                type: object
               deployment:
                 description: Defines the desired state and cycle of applications.
                 properties:
