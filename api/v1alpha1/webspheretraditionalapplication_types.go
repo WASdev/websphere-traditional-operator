@@ -362,7 +362,7 @@ const (
 	StatusConditionTypeReconciled StatusConditionType = "Reconciled"
 )
 
-// +kubebuilder:resource:path=openlibertyapplications,scope=Namespaced,shortName=olapp;olapps
+// +kubebuilder:resource:path=webspheretraditionalapplications,scope=Namespaced,shortName=wtapp;wtapps
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Image",type="string",JSONPath=".spec.applicationImage",priority=0,description="Absolute name of the deployed image containing registry and tag"
@@ -373,7 +373,7 @@ const (
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp",priority=0,description="Age of the resource"
 //+operator-sdk:csv:customresourcedefinitions:displayName="WebsphereTraditionalApplication",resources={{Deployment,v1},{Service,v1},{StatefulSet,v1},{Route,v1},{HorizontalPodAutoscaler,v1},{ServiceAccount,v1},{Secret,v1}}
 
-// Represents the deployment of an Open Liberty application
+// Represents the deployment of a Websphere Traditional application
 type WebsphereTraditionalApplication struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -642,7 +642,7 @@ func (cr *WebsphereTraditionalApplication) GetSidecarContainers() []corev1.Conta
 
 // GetGroupName returns group name to be used in labels and annotation
 func (cr *WebsphereTraditionalApplication) GetGroupName() string {
-	return "apps.openliberty.io"
+	return "apps.webspheretraditional.io.ibm"
 }
 
 // GetRoute returns route
@@ -928,7 +928,7 @@ func (cr *WebsphereTraditionalApplication) GetLabels() map[string]string {
 	labels := map[string]string{
 		"app.kubernetes.io/instance":   cr.Name,
 		"app.kubernetes.io/name":       cr.Name,
-		"app.kubernetes.io/managed-by": "open-liberty-operator",
+		"app.kubernetes.io/managed-by": "websphere-traditional-operator",
 		"app.kubernetes.io/component":  "backend",
 		"app.kubernetes.io/part-of":    cr.Spec.ApplicationName,
 	}

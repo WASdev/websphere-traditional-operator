@@ -63,9 +63,9 @@ func main() {
 	//var metricsAddr string
 	var enableLeaderElection bool
 	//flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
-	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
-		"Enable leader election for controller manager. "+
-			"Enabling this will ensure there is only one active controller manager.")
+	//flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
+	//		"Enable leader election for controller manager. "+
+	//			"Enabling this will ensure there is only one active controller manager.")
 	flag.Parse()
 
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
@@ -74,11 +74,13 @@ func main() {
 	leaseDuration := 30 * time.Second
 	renewDeadline := 20 * time.Second
 
-	watchNamespace, err := getWatchNamespace()
-	if err != nil {
-		setupLog.Error(err, "unable to get WatchNamespace, "+
-			"the manager will watch and manage resources in all Namespaces")
-	}
+	//watchNamespace, err := getWatchNamespace()
+	watchNamespace := "websphere-traditional-operator-system"
+
+	//	if err != nil {
+	//		setupLog.Error(err, "unable to get WatchNamespace, "+
+	//			"the manager will watch and manage resources in all Namespaces")
+	//	}
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme,

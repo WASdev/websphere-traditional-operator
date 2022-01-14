@@ -64,11 +64,18 @@ type ReconcileWebsphereTraditional struct {
 	watchNamespaces []string
 }
 
-const applicationFinalizer = "finalizer.webspheretraditionalapplications.apps.webspheretraditional.io"
+const applicationFinalizer = "finalizer.webspheretraditionalapplications.apps.webspheretraditional.io.ibm"
 
-//+kubebuilder:rbac:groups=apps.webspheretraditional.io.ibm,resources=webspheretraditionalapplications,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=apps.webspheretraditional.io.ibm,resources=webspheretraditionalapplications/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=apps.webspheretraditional.io.ibm,resources=webspheretraditionalapplications/finalizers,verbs=update
+//+kubebuilder:rbac:groups=apps.webspheretraditional.io.ibm,resources=webspheretraditionalapplications;webspheretraditionalapplications/status;webspheretraditionalapplications/finalizers,verbs=*,namespace=websphere-traditional-operator-system
+// +kubebuilder:rbac:groups=apps,resources=deployments;statefulsets,verbs=*,namespace=websphere-traditional-operator-system
+// +kubebuilder:rbac:groups=apps,resources=deployments/finalizers;statefulsets,verbs=update,namespace=websphere-traditional-operator-system
+// +kubebuilder:rbac:groups=core,resources=services;secrets;serviceaccounts;configmaps;persistentvolumeclaims,verbs=*,namespace=websphere-traditional-operator-system
+// +kubebuilder:rbac:groups=autoscaling,resources=horizontalpodautoscalers,verbs=*,namespace=websphere-traditional-operator-system
+// +kubebuilder:rbac:groups=networking.k8s.io,resources=ingresses,verbs=*,namespace=websphere-traditional-operator-system
+// +kubebuilder:rbac:groups=route.openshift.io,resources=routes;routes/custom-host,verbs=*,namespace=websphere-traditional-operator-system
+// +kubebuilder:rbac:groups=image.openshift.io,resources=imagestreams;imagestreamtags,verbs=get;list;watch,namespace=websphere-traditional-operator-system
+// +kubebuilder:rbac:groups=serving.knative.dev,resources=services,verbs=*,namespace=websphere-traditional-operator-system
+// +kubebuilder:rbac:groups=monitoring.coreos.com,resources=servicemonitors,verbs=*,namespace=websphere-traditional-operator-system
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -380,7 +387,7 @@ func (r *ReconcileWebsphereTraditional) Reconcile(ctx context.Context, request c
 			oputils.CustomizePodSpec(&statefulSet.Spec.Template, instance)
 			oputils.CustomizePersistence(statefulSet, instance)
 			if err := lutils.CustomizeWebsphereTraditionalEnv(&statefulSet.Spec.Template, instance, r.GetClient()); err != nil {
-				reqLogger.Error(err, "Failed to reconcile Liberty env")
+				reqLogger.Error(err, "Failed to reconcile env")
 				return err
 			}
 			lutils.CustomizeWebsphereTraditionalAnnotations(&statefulSet.Spec.Template, instance)
@@ -422,7 +429,7 @@ func (r *ReconcileWebsphereTraditional) Reconcile(ctx context.Context, request c
 			oputils.CustomizeDeployment(deploy, instance)
 			oputils.CustomizePodSpec(&deploy.Spec.Template, instance)
 			if err := lutils.CustomizeWebsphereTraditionalEnv(&deploy.Spec.Template, instance, r.GetClient()); err != nil {
-				reqLogger.Error(err, "Failed to reconcile Liberty env")
+				reqLogger.Error(err, "Failed to reconcile env")
 				return err
 			}
 			lutils.CustomizeWebsphereTraditionalAnnotations(&deploy.Spec.Template, instance)

@@ -1,34 +1,81 @@
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
+kind: Role
 metadata:
   creationTimestamp: null
   name: manager-role
+  namespace: websphere-traditional-operator-system
 rules:
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - statefulsets
+  verbs:
+  - '*'
+- apiGroups:
+  - apps
+  resources:
+  - deployments/finalizers
+  - statefulsets
+  verbs:
+  - update
 - apiGroups:
   - apps.webspheretraditional.io.ibm
   resources:
   - webspheretraditionalapplications
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - apps.webspheretraditional.io.ibm
-  resources:
   - webspheretraditionalapplications/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - apps.webspheretraditional.io.ibm
-  resources:
   - webspheretraditionalapplications/status
   verbs:
+  - '*'
+- apiGroups:
+  - autoscaling
+  resources:
+  - horizontalpodautoscalers
+  verbs:
+  - '*'
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - persistentvolumeclaims
+  - secrets
+  - serviceaccounts
+  - services
+  verbs:
+  - '*'
+- apiGroups:
+  - image.openshift.io
+  resources:
+  - imagestreams
+  - imagestreamtags
+  verbs:
   - get
-  - patch
-  - update
+  - list
+  - watch
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - servicemonitors
+  verbs:
+  - '*'
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  verbs:
+  - '*'
+- apiGroups:
+  - route.openshift.io
+  resources:
+  - routes
+  - routes/custom-host
+  verbs:
+  - '*'
+- apiGroups:
+  - serving.knative.dev
+  resources:
+  - services
+  verbs:
+  - '*'
