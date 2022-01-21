@@ -38,7 +38,7 @@ g BUNDLE_IMG defines the image:tag used for the bundle.
 BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:v$(VERSION)
 
 # Image URL to use all building/pushing image targets
-IMG ?= websphere-traditional-operator-system/example:latest
+IMG ?= websphere-traditional-operator-system-test/example:latest
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.22
 
@@ -90,10 +90,16 @@ vet: ## Run go vet against code.
 test: manifests generate fmt vet envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
 
+unit-test: build 
+    ## Run go unit tests	
+
 ##@ Build
 
 build: generate fmt vet ## Build manager binary.
 	go build -o bin/manager main.go
+
+build-pipeline-releases:
+	./scripts/build-releases.sh -u "${PIPELINE_USERNAME}" -p "${PIPELINE_PASSWORD}" --registry "${PIPELINE_REGISTRY}" --image "${PIPELINE_REGISTRY}/${PIPELINE_OPERATOR_IMAGE}"	--target "${RELEASE_TARGET}"
 
 run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go
@@ -109,6 +115,12 @@ docker-push: ## Push docker image with the manager.
 
 podman-push:
 	podman push --tls-verify=false ${IMAGE_TARGET}/${IMG}
+
+build-pipeline-manifest: setup-manifest
+	./scripts/build-manifest.sh -u "${PIPELINE_USERNAME}" -p "${PIPELINE_PASSWORD}" --registry "${PIPELINE_REGISTRY}" --image "${PIPELINE_REGISTRY}/${PIPELINE_OPERATOR_IMAGE}"	--target "${RELEASE_TARGET}"
+
+setup-manifest:
+	./scripts/installers/install-manifest-tool.sh
 
 ##@ Deployment
 
