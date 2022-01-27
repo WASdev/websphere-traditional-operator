@@ -40,6 +40,13 @@ else
 FULL_IMAGE_TARGET ?= ${IMG}
 endif
 
+# Setup parameters for TLS verify, default if unspecified is true
+ifeq (false, $(TLS_VERIFY))
+SKIP_TLS_VERIFY=--skip-tls
+else
+TLS_VERIFY ?= true
+endif
+
 # BUNDLE_IMG defines the image:tag used for the bundle.
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
 # Set the image path to include the host if it is set
@@ -134,7 +141,7 @@ docker-build: test ## Build docker image with the manager.
 	$(CONTAINER_COMMAND) build -t  ${FULL_IMAGE_TARGET} .
 
 docker-push: ## Push docker image with the manager.
-	$(CONTAINER_COMMAND) push --tls-verify=false ${FULL_IMAGE_TARGET}
+	$(CONTAINER_COMMAND) push --tls-verify=$(TLS_VERIFY) ${FULL_IMAGE_TARGET}
 
 build-pipeline-manifest: setup-manifest
 	./scripts/build-manifest.sh -u "${PIPELINE_USERNAME}" -p "${PIPELINE_PASSWORD}" --registry "${PIPELINE_REGISTRY}" --image "${PIPELINE_REGISTRY}/${PIPELINE_OPERATOR_IMAGE}"	--target "${RELEASE_TARGET}"
@@ -243,7 +250,7 @@ endif
 # https://github.com/operator-framework/community-operators/blob/7f1438c/docs/packaging-operator.md#updating-your-existing-operator
 .PHONY: catalog-build
 catalog-build: opm ## Build a catalog image.
-	$(OPM) index add --skip-tls --container-tool $(CONTAINER_COMMAND)  --mode semver --tag $(CATALOG_IMG) --bundles $(BUNDLE_IMGS) $(FROM_INDEX_OPT)
+	$(OPM) index add $(SKIP_TLS_VERIFY) --container-tool $(CONTAINER_COMMAND)  --mode semver --tag $(CATALOG_IMG) --bundles $(BUNDLE_IMGS) $(FROM_INDEX_OPT)
 
 # Push the catalog image.
 .PHONY: catalog-push
