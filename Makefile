@@ -238,8 +238,6 @@ else
 CATALOG_IMG ?= $(IMAGE_TAG_BASE)-catalog:$(VVERSION)
 endif
 
-# WORKED DELTE CATALOG_IMG ?= ${FULL_IMAGE_TARGET}/websphere-traditional-operator-system/websphere-traditional-operator-catalog:latest
-
 # Set CATALOG_BASE_IMG to an existing catalog image tag to add $BUNDLE_IMGS to that image.
 ifneq ($(origin CATALOG_BASE_IMG), undefined)
 FROM_INDEX_OPT := --from-index $(CATALOG_BASE_IMG)
