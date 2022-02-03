@@ -5,6 +5,10 @@
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
 VERSION ?= 0.0.1
 
+#OPERATOR_SDK_RELEASE_VERSION
+#Specify the version of the operator-sdk to install for make operations
+OPERATOR_SDK_RELEASE_VERSION ?= v1.6.4
+
 # CHANNELS define the bundle channels used in the bundle.
 # Add a new line here if you would like to change its default config. (E.g CHANNELS = "candidate,fast,stable")
 # To re-generate a bundle for other specific channels without changing the standard setup, you can:
@@ -147,6 +151,9 @@ docker-push: ## Push docker image with the manager.
 
 setup-manifest:
 	./scripts/installers/install-manifest-tool.sh
+
+setup-operator-sdk: ## Ensure Operator SDK is installed
+	./scripts/installers/install-operator-sdk.sh ${OPERATOR_SDK_RELEASE_VERSION}
 
 build-pipeline-manifest: setup-manifest
 	./scripts/build-manifest.sh -u "${PIPELINE_USERNAME}" -p "${PIPELINE_PASSWORD}" --registry "${PIPELINE_REGISTRY}" --image "${PIPELINE_REGISTRY}/${PIPELINE_OPERATOR_IMAGE}"	--target "${RELEASE_TARGET}"
