@@ -64,7 +64,7 @@ BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:$(VVERSION)
 endif
 
 # Image URL to use all building/pushing image targets
-IMG ?= websphere-traditional-operator-system-test/example:latest
+IMG ?= websphere-traditional-operator-system/operator:latest
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.22
 
@@ -145,17 +145,11 @@ docker-build: test ## Build docker image with the manager.
 docker-push: ## Push docker image with the manager.
 	$(CONTAINER_COMMAND) push --tls-verify=$(TLS_VERIFY) ${FULL_IMAGE_TARGET}
 
-build-pipeline-manifest: setup-manifest
-	./scripts/build-manifest.sh -u "${PIPELINE_USERNAME}" -p "${PIPELINE_PASSWORD}" --registry "${PIPELINE_REGISTRY}" --image "${PIPELINE_REGISTRY}/${PIPELINE_OPERATOR_IMAGE}"	--target "${RELEASE_TARGET}"
-
 setup-manifest:
 	./scripts/installers/install-manifest-tool.sh
 
 build-pipeline-manifest: setup-manifest
 	./scripts/build-manifest.sh -u "${PIPELINE_USERNAME}" -p "${PIPELINE_PASSWORD}" --registry "${PIPELINE_REGISTRY}" --image "${PIPELINE_REGISTRY}/${PIPELINE_OPERATOR_IMAGE}"	--target "${RELEASE_TARGET}"
-
-setup-manifest:
-	./scripts/installers/install-manifest-tool.sh
 
 ##@ Deployment
 
