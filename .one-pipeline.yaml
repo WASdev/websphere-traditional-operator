@@ -83,7 +83,9 @@ containerize:
     export PIPELINE_PASSWORD=$(get_env ibmcloud-api-key-staging)  
     export PIPELINE_REGISTRY=$(get_env pipeline-registry)
     export PIPELINE_OPERATOR_IMAGE=$(get_env pipeline-operator-image)
-    export RELEASE_TARGET=$(get_env release-target)  
+    export RELEASE_TARGET=$(get_env release-target)
+    export DOCKER_USERNAME=$(get_env docker-username)
+    export DOCKER_PASSWORD=$(get_env docker-password)    
     
     # Build amd64 image
     make build-pipeline-releases
@@ -96,9 +98,11 @@ containerize:
     make build-pipeline-manifest  
 
     # Build bundle image
-    # Disabled for tWAS Operator builds for now
+    # The disabled line below is the old script that builds bundle and catalog, for now we are just building bundle
     #./scripts/pipeline/launch-catalog-build.sh -t $(get_env travis-token) -r "https://github.com/WASDev/websphere-traditional-operator" -b $(get_env branch) -l
-    
+    make setup-operator-sdk
+    make bundle-pipeline
+
     # Save artifacts
     ## disabled the ppc64le and s380x save for now (see build stanza above).  Once these are built, we can move forward with this section.
     # declare -a tags=("daily-amd64" "daily-ppc64le" "daily-s390x") 
@@ -122,6 +126,13 @@ containerize:
     #  echo "Saving artifact $i name=$IMAGE digest=$DIGEST"
     #  save_artifact $i type=image name="$IMAGE" "digest=$DIGEST" "arch=$ARCH"   
     #done
+
+sign-artifact:
+  abort_on_failure: false
+  image: icr.io/continuous-delivery/pipeline/image-signing:1.0.0@sha256:e9d8e354668ba3d40be2aaee08298d2aa7f0e1c8a1829cca4094ec93830e3e6a
+  script: |
+    #!/usr/bin/env bash
+    echo "sign-artifact"
 
 deploy:
   image: icr.io/continuous-delivery/pipeline/pipeline-base-image:2.12@sha256:ff4053b0bca784d6d105fee1d008cfb20db206011453071e86b69ca3fde706a4
@@ -154,20 +165,23 @@ acceptance-test:
     #!/usr/bin/env bash
     echo "acceptance-test"
     # Download and configure golang
-    #wget --header "Accept: application/octet-stream"  "https://golang.org/dl/go1.16.linux-amd64.tar.gz" 
-    #rm -rf /usr/local/go && tar -C /usr/local -xf go1.16.linux-amd64.tar.gz
-    #export PATH=$PATH:/usr/local/go/bin
-    #apt-get update
-    #apt-get -y install build-essential    
-    #export PIPELINE_USERNAME=$(get_env ibmcloud-api-user)
-    #export PIPELINE_PASSWORD=$(get_env ibmcloud-api-key)  
-    #export DOCKER_USERNAME=$(get_env docker-username)
-    #export DOCKER_PASSWORD=$(get_env docker-password)    
-    #export CLUSTER_URL=$(get_env test-cluster-url)
-    #export CLUSTER_TOKEN=$(get_env test-cluster-token) 
-    #export TRAVIS_BUILD_NUMBER=$BUILD_NUMBER   
-    #make setup
-    #make test-pipeline-e2e
+    wget --header "Accept: application/octet-stream"  "https://golang.org/dl/go1.16.linux-amd64.tar.gz" 
+    rm -rf /usr/local/go && tar -C /usr/local -xf go1.16.linux-amd64.tar.gz
+    export PATH=$PATH:/usr/local/go/bin
+    apt-get update
+    apt-get -y install build-essential    
+    export PIPELINE_USERNAME=$(get_env ibmcloud-api-user)
+    export PIPELINE_PASSWORD=$(get_env ibmcloud-api-key-staging)
+    export PIPELINE_REGISTRY=$(get_env pipeline-registry)
+    export PIPELINE_OPERATOR_IMAGE=$(get_env pipeline-operator-image)
+    export DOCKER_USERNAME=$(get_env docker-username)
+    export DOCKER_PASSWORD=$(get_env docker-password)    
+    export CLUSTER_URL=$(get_env test-cluster-url)
+    export CLUSTER_TOKEN=$(get_env test-cluster-token) 
+    export TRAVIS_BUILD_NUMBER=$BUILD_NUMBER
+    export RELEASE_TARGET=$(get_env release-target)  
+    make setup-operator-sdk
+    make test-pipeline-e2e  
 
 scan-artifact:
   abort_on_failure: false
