@@ -5,6 +5,10 @@
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
 VERSION ?= 0.0.1
 
+#OPERATOR_SDK_RELEASE_VERSION
+#Specify the version of the operator-sdk to install for make operations
+OPERATOR_SDK_RELEASE_VERSION ?= v1.6.4
+
 # CHANNELS define the bundle channels used in the bundle.
 # Add a new line here if you would like to change its default config. (E.g CHANNELS = "candidate,fast,stable")
 # To re-generate a bundle for other specific channels without changing the standard setup, you can:
@@ -148,8 +152,21 @@ docker-push: ## Push docker image with the manager.
 setup-manifest:
 	./scripts/installers/install-manifest-tool.sh
 
+setup-operator-sdk: ## Ensure Operator SDK is installed
+	./scripts/installers/install-operator-sdk.sh ${OPERATOR_SDK_RELEASE_VERSION}
+
 build-pipeline-manifest: setup-manifest
 	./scripts/build-manifest.sh -u "${PIPELINE_USERNAME}" -p "${PIPELINE_PASSWORD}" --registry "${PIPELINE_REGISTRY}" --image "${PIPELINE_REGISTRY}/${PIPELINE_OPERATOR_IMAGE}"	--target "${RELEASE_TARGET}"
+
+test-pipeline-e2e:
+	./scripts/pipeline/fyre-e2e.sh -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}" \
+                     --cluster-url "${CLUSTER_URL}" --cluster-token "${CLUSTER_TOKEN}" \
+                     --registry-name "${PIPELINE_REGISTRY}" --registry-image "${PIPELINE_OPERATOR_IMAGE}" \
+                     --registry-user "${PIPELINE_USERNAME}" --registry-password "${PIPELINE_PASSWORD}" \
+                     --test-tag "${TRAVIS_BUILD_NUMBER}" --release "${RELEASE_TARGET}"			
+
+bundle-pipeline:
+	./scripts/bundle-release.sh -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}" --image "${PIPELINE_REGISTRY}/${PIPELINE_OPERATOR_IMAGE}" --release "${RELEASE_TARGET}"
 
 ##@ Deployment
 
@@ -207,7 +224,7 @@ bundle-build: ## Build the bundle image.
 
 .PHONY: bundle-push
 bundle-push: ## Push the bundle image.
-	$(MAKE) docker-push FULL_IMAGE_TARGET=$(BUNDLE_IMG)
+	$(CONTAINER_COMMAND) push $(BUNDLE_IMG)
 
 
 .PHONY: opm
