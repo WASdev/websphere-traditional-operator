@@ -23,3 +23,6 @@ testbin/*
 *.swp
 *.swo
 *~
+
+# mac generated files
+.DS_STORE
