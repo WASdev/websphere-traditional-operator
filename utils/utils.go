@@ -1,33 +1,37 @@
 package utils
 
 import (
-	//"bytes"
-	//	"context"
-	//	"fmt"
-	//	"sort"
+	"bytes"
+	//"context"
+	"fmt"
+	//"sort"
 	"strconv"
 	"strings"
 
 	webspheretraditionalv1alpha1 "github.com/WASdev/websphere-traditional-operator/api/v1alpha1"
-	//	rcoutils "github.com/application-stacks/runtime-component-operator/utils"
-	//	routev1 "github.com/openshift/api/route/v1"
-	//	"github.com/pkg/errors"
+	//rcoutils "github.com/application-stacks/runtime-component-operator/utils"
+	//routev1 "github.com/openshift/api/route/v1"
+	//"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
-	//	"k8s.io/apimachinery/pkg/api/resource"
-	//	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	//	"k8s.io/apimachinery/pkg/types"
-	//	"k8s.io/client-go/kubernetes"
-	//	"k8s.io/client-go/kubernetes/scheme"
+	//"k8s.io/apimachinery/pkg/api/resource"
+	//metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	//"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
-	//	"k8s.io/client-go/tools/remotecommand"
+	"k8s.io/client-go/tools/remotecommand"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	//	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	//"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-// Utility methods specific to Open Liberty and its configuration
+// Utility methods specific to WebSphere Traditional operator and its configuration
 
 var log = logf.Log.WithName("webspheretraditional_utils")
+
+//Constant Values
+//const serviceabilityMountPath = "/serviceability"
+//const ssoEnvVarPrefix = "SEC_SSO_"
 
 // Validate if the WebsphereTraditionalApplication is valid
 func Validate(olapp *webspheretraditionalv1alpha1.WebsphereTraditionalApplication) (bool, error) {
@@ -41,11 +45,47 @@ func requiredFieldMessage(fieldPaths ...string) string {
 
 // ExecuteCommandInContainer Execute command inside a container in a pod through API
 func ExecuteCommandInContainer(config *rest.Config, podName, podNamespace, containerName string, command []string) (string, error) {
-	log.Error(nil, "Need to implement function")
-	return "Need to implement function", nil
+
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		log.Error(err, "Failed to create Clientset")
+		return "", fmt.Errorf("Failed to create Clientset: %v", err.Error())
+	}
+
+	req := clientset.CoreV1().RESTClient().Post().
+		Resource("pods").
+		Name(podName).
+		Namespace(podNamespace).
+		SubResource("exec")
+
+	req.VersionedParams(&corev1.PodExecOptions{
+		Command:   command,
+		Container: containerName,
+		Stdout:    true,
+		Stderr:    true,
+		TTY:       false,
+	}, scheme.ParameterCodec)
+
+	exec, err := remotecommand.NewSPDYExecutor(config, "POST", req.URL())
+	if err != nil {
+		return "", fmt.Errorf("Encountered error while creating Executor: %v", err.Error())
+	}
+
+	var stdout, stderr bytes.Buffer
+	err = exec.Stream(remotecommand.StreamOptions{
+		Stdout: &stdout,
+		Stderr: &stderr,
+		Tty:    false,
+	})
+
+	if err != nil {
+		return stderr.String(), fmt.Errorf("Encountered error while running command: %v ; Stderr: %v ; Error: %v", command, stderr.String(), err.Error())
+	}
+
+	return stderr.String(), nil
 }
 
-// CustomizeLibertyEnv adds configured env variables appending configured liberty settings
+// CustomizeWebsphereTraditionalEnv adds configured env variables appending configured webspheretraditional settings
 func CustomizeWebsphereTraditionalEnv(pts *corev1.PodTemplateSpec, wt *webspheretraditionalv1alpha1.WebsphereTraditionalApplication, client client.Client) error {
 	log.Error(nil, "Need to implement function")
 	return nil
@@ -60,6 +100,7 @@ func CustomizeWebsphereTraditionalAnnotations(pts *corev1.PodTemplateSpec, wt *w
 	log.Error(nil, "Need to implement function")
 }
 
+// findEnvVars checks if the environment variable is already present
 func findEnvVar(name string, envList []corev1.EnvVar) (*corev1.EnvVar, bool) {
 	for i, val := range envList {
 		if val.Name == name {
@@ -69,11 +110,13 @@ func findEnvVar(name string, envList []corev1.EnvVar) (*corev1.EnvVar, bool) {
 	return nil, false
 }
 
+// CreateServiceabilityPVC creates PersistentVolumeClaim for Serviceability
 func CreateServiceabilityPVC(instance *webspheretraditionalv1alpha1.WebsphereTraditionalApplication) *corev1.PersistentVolumeClaim {
 	log.Error(nil, "Need to implement function")
 	return nil
 }
 
+// ConfigureServiceability setups the shared-storage for serviceability
 func ConfigureServiceability(pts *corev1.PodTemplateSpec, la *webspheretraditionalv1alpha1.WebsphereTraditionalApplication) {
 	log.Error(nil, "Need to implement function")
 }
