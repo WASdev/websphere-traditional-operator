@@ -11,8 +11,8 @@ configMapGenerator:
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 images:
-- name: /websphere-traditional-operator-system/example
+- name: /websphere-traditional-operator-system/operator
   newTag: latest
 - name: controller
-  newName: image-registry.openshift-image-registry.svc:5000/websphere-traditional-operator-system/example
+  newName: image-registry.openshift-image-registry.svc:5000/websphere-traditional-operator-system/operator
   newTag: latest

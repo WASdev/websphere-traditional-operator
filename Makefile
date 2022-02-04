@@ -33,12 +33,38 @@ IMAGE_TAG_BASE ?= ibm/websphere-traditional-operator
 : "${IMAGE_TARGET:=}"
 : "${IMAGE_TARGET_LOCAL:=}"
 
-g BUNDLE_IMG defines the image:tag used for the bundle.
+# Set the image path to include the host if it is set
+ifneq (, $(IMAGE_TARGET))
+FULL_IMAGE_TARGET ?= ${IMAGE_TARGET}/${IMG}
+else
+FULL_IMAGE_TARGET ?= ${IMG}
+endif
+
+# Setup parameters for TLS verify, default if unspecified is true
+ifeq (false, $(TLS_VERIFY))
+SKIP_TLS_VERIFY=--skip-tls
+else
+TLS_VERIFY ?= true
+endif
+
+# BUNDLE_IMG defines the image:tag used for the bundle.
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
-BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:v$(VERSION)
+# Set the image path to include the host if it is set
+
+ifneq (latest, $(VERSION))
+VVERSION:=v${VERSION}
+else
+VVERSION:=${VERSION}
+endif
+
+ifneq (, $(IMAGE_TARGET))
+BUNDLE_IMG ?= ${IMAGE_TARGET}/$(IMAGE_TAG_BASE)-bundle:$(VVERSION)
+else
+BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:$(VVERSION)
+endif
 
 # Image URL to use all building/pushing image targets
-IMG ?= websphere-traditional-operator-system/example:latest
+IMG ?= websphere-traditional-operator-system/operator:latest
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.22
 
@@ -49,6 +75,13 @@ ifeq (,$(shell go env GOBIN))
 GOBIN=$(shell go env GOPATH)/bin
 else
 GOBIN=$(shell go env GOBIN)
+endif
+
+# Use podman if it's available
+ifeq (, $(shell which podman))
+CONTAINER_COMMAND ?= "docker"
+else
+CONTAINER_COMMAND ?= "podman"
 endif
 
 # Setting SHELL to bash allows bash commands to be executed by recipes.
@@ -92,25 +125,31 @@ vet: ## Run go vet against code.
 test: manifests generate fmt vet envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
 
+unit-test: build 
+    ## Run go unit tests	
+
 ##@ Build
 
 build: generate fmt vet ## Build manager binary.
 	go build -o bin/manager main.go
 
+build-pipeline-releases:
+	./scripts/build-releases.sh -u "${PIPELINE_USERNAME}" -p "${PIPELINE_PASSWORD}" --registry "${PIPELINE_REGISTRY}" --image "${PIPELINE_REGISTRY}/${PIPELINE_OPERATOR_IMAGE}"	--target "${RELEASE_TARGET}"
+
 run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go
 
 docker-build: test ## Build docker image with the manager.
-	docker build -t  ${IMAGE_TARGET}/${IMG} .
-
-podman-build: test
-	podman build -t ${IMAGE_TARGET}/${IMG} .
+	$(CONTAINER_COMMAND) build -t  ${FULL_IMAGE_TARGET} .
 
 docker-push: ## Push docker image with the manager.
-	docker push --tls-verify=false ${IMAGE_TARGET}/${IMG}
+	$(CONTAINER_COMMAND) push --tls-verify=$(TLS_VERIFY) ${FULL_IMAGE_TARGET}
 
-podman-push:
-	podman push --tls-verify=false ${IMAGE_TARGET}/${IMG}
+setup-manifest:
+	./scripts/installers/install-manifest-tool.sh
+
+build-pipeline-manifest: setup-manifest
+	./scripts/build-manifest.sh -u "${PIPELINE_USERNAME}" -p "${PIPELINE_PASSWORD}" --registry "${PIPELINE_REGISTRY}" --image "${PIPELINE_REGISTRY}/${PIPELINE_OPERATOR_IMAGE}"	--target "${RELEASE_TARGET}"
 
 ##@ Deployment
 
@@ -163,19 +202,13 @@ bundle: manifests kustomize ## Generate bundle manifests and metadata, then vali
 
 .PHONY: bundle-build
 bundle-build: ## Build the bundle image.
-	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
+	$(CONTAINER_COMMAND) build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
 
-.PHONY: bundle-build-podman
-bundle-build-podman:
-	 podman build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
 
 .PHONY: bundle-push
 bundle-push: ## Push the bundle image.
-	$(MAKE) docker-push IMG=$(BUNDLE_IMG)
+	$(MAKE) docker-push FULL_IMAGE_TARGET=$(BUNDLE_IMG)
 
-.PHONY: bundle-push-podman
-bundle-push-podman:
-	$(MAKE) podman-push IMG=$(BUNDLE_IMG)
 
 .PHONY: opm
 OPM = ./bin/opm
@@ -199,7 +232,13 @@ endif
 BUNDLE_IMGS ?= $(BUNDLE_IMG)
 
 # The image tag given to the resulting catalog image (e.g. make catalog-build CATALOG_IMG=example.com/operator-catalog:v0.2.0).
-CATALOG_IMG ?= $(IMAGE_TAG_BASE)-catalog:v$(VERSION)
+# CATALOG_IMG ?= $(IMAGE_TAG_BASE)-catalog:v$(VERSION)
+
+ifneq (, $(IMAGE_TARGET))
+CATALOG_IMG ?= ${IMAGE_TARGET}/$(IMAGE_TAG_BASE)-catalog:$(VVERSION)
+else
+CATALOG_IMG ?= $(IMAGE_TAG_BASE)-catalog:$(VVERSION)
+endif
 
 # Set CATALOG_BASE_IMG to an existing catalog image tag to add $BUNDLE_IMGS to that image.
 ifneq ($(origin CATALOG_BASE_IMG), undefined)
@@ -211,9 +250,9 @@ endif
 # https://github.com/operator-framework/community-operators/blob/7f1438c/docs/packaging-operator.md#updating-your-existing-operator
 .PHONY: catalog-build
 catalog-build: opm ## Build a catalog image.
-	$(OPM) index add --container-tool docker --mode semver --tag $(CATALOG_IMG) --bundles $(BUNDLE_IMGS) $(FROM_INDEX_OPT)
+	$(OPM) index add $(SKIP_TLS_VERIFY) --container-tool $(CONTAINER_COMMAND)  --mode semver --tag $(CATALOG_IMG) --bundles $(BUNDLE_IMGS) $(FROM_INDEX_OPT)
 
 # Push the catalog image.
 .PHONY: catalog-push
 catalog-push: ## Push a catalog image.
-	$(MAKE) docker-push IMG=$(CATALOG_IMG)
+	$(MAKE) docker-push FULL_IMAGE_TARGET=$(CATALOG_IMG)
