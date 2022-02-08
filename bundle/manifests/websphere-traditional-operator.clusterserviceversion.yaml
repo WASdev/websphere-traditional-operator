@@ -171,7 +171,7 @@ spec:
         serviceAccountName: websphere-traditional-operator-controller-manager
     strategy: deployment
   installModes:
-  - supported: false
+  - supported: true
     type: OwnNamespace
   - supported: false
     type: SingleNamespace

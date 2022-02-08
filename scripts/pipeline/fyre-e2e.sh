@@ -3,7 +3,7 @@
 readonly usage="Usage: fyre-e2e.sh -u <docker-username> -p <docker-password> --cluster-url <url> --cluster-token <token> --registry-name <name> --registry-image <ns/image> --registry-user <user> --registry-password <password> --release <daily|release-tag> --test-tag <test-id>"
 #readonly SERVICE_ACCOUNT="travis-tests"
 readonly OC_CLIENT_VERSION="4.6.0"
-readonly CONTROLLER_MANAGER_NAME="websphere-operator-controller-manager"
+readonly CONTROLLER_MANAGER_NAME="websphere-traditional-operator-controller-manager"
 
 # setup_env: Download oc cli, log into our persistent cluster, and create a test project
 setup_env() {
@@ -135,17 +135,17 @@ main() {
 
     echo "****** Installing bundle is disabled for now pending resolution of bundle build issues in one pipeline ******"
     echo "Bundle image: ${BUNDLE_IMAGE}"
-    #echo "****** Installing bundle..."
-    #operator-sdk run bundle --install-mode OwnNamespace --pull-secret-name regcred "${BUNDLE_IMAGE}" || {
-    #    echo "****** Installing bundle failed..."
-    #    exit 1
-    #}
+    echo "****** Installing bundle..."
+    operator-sdk run bundle --install-mode OwnNamespace --pull-secret-name regcred "${BUNDLE_IMAGE}" || {
+        echo "****** Installing bundle failed..."
+        exit 1
+    }
 
     # Wait for operator deployment to be ready
-    #while [[ $(oc get deploy "${CONTROLLER_MANAGER_NAME}" -o jsonpath='{ .status.readyReplicas }') -ne "1" ]]; do
-    #    echo "****** Waiting for ${CONTROLLER_MANAGER_NAME} to be ready..."
-    #    sleep 10
-    #done
+    while [[ $(oc get deploy "${CONTROLLER_MANAGER_NAME}" -o jsonpath='{ .status.readyReplicas }') -ne "1" ]]; do
+        echo "****** Waiting for ${CONTROLLER_MANAGER_NAME} to be ready..."
+        sleep 10
+    done
 
     echo "****** ${CONTROLLER_MANAGER_NAME} deployment is ready..."
 
