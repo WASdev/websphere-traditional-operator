@@ -133,9 +133,7 @@ main() {
     echo "Updating global pull secret"
     oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=/tmp/pull-secret-merged.yaml
 
-    echo "****** Installing bundle is disabled for now pending resolution of bundle build issues in one pipeline ******"
-    echo "Bundle image: ${BUNDLE_IMAGE}"
-    echo "****** Installing bundle..."
+    echo "****** Installing Bundle image: ${BUNDLE_IMAGE}"
     operator-sdk run bundle --install-mode OwnNamespace --pull-secret-name regcred "${BUNDLE_IMAGE}" || {
         echo "****** Installing bundle failed..."
         exit 1
