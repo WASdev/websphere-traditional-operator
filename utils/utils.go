@@ -30,7 +30,8 @@ import (
 var log = logf.Log.WithName("webspheretraditional_utils")
 
 //Constant Values
-//const serviceabilityMountPath = "/serviceability"
+const serviceabilityMountPath = "/serviceability"
+
 //const ssoEnvVarPrefix = "SEC_SSO_"
 
 // Validate if the WebsphereTraditionalApplication is valid
@@ -87,7 +88,41 @@ func ExecuteCommandInContainer(config *rest.Config, podName, podNamespace, conta
 
 // CustomizeWebsphereTraditionalEnv adds configured env variables appending configured webspheretraditional settings
 func CustomizeWebsphereTraditionalEnv(pts *corev1.PodTemplateSpec, wt *webspheretraditionalv1alpha1.WebsphereTraditionalApplication, client client.Client) error {
-	log.Error(nil, "Need to implement function")
+	//log.Error(nil, "Need to implement function")
+	// ENV variables have already been set, check if they exist before setting defaults
+	targetEnv := []corev1.EnvVar{
+		{Name: "WTP_LOGGING_CONSOLE_LOGLEVEL", Value: "info"},
+		{Name: "WTP_LOGGING_CONSOLE_SOURCE", Value: "message,accessLog,ffdc,audit"},
+		{Name: "WTP_LOGGING_CONSOLE_FORMAT", Value: "json"},
+	}
+
+	if wt.GetServiceability() != nil {
+		targetEnv = append(targetEnv,
+			corev1.EnvVar{Name: "IBM_HEAPDUMPDIR", Value: serviceabilityMountPath},
+			corev1.EnvVar{Name: "IBM_COREDIR", Value: serviceabilityMountPath},
+			corev1.EnvVar{Name: "IBM_JAVACOREDIR", Value: serviceabilityMountPath},
+		)
+	}
+
+	envList := pts.Spec.Containers[0].Env
+	for _, v := range targetEnv {
+		if _, found := findEnvVar(v.Name, envList); !found {
+			pts.Spec.Containers[0].Env = append(pts.Spec.Containers[0].Env, v)
+		}
+	}
+
+	if wt.GetService() != nil && wt.GetService().GetCertificateSecretRef() != nil {
+		if err := addSecretResourceVersionAsEnvVar(pts, wt, client, *wt.GetService().GetCertificateSecretRef(), "SERVICE_CERT"); err != nil {
+			return err
+		}
+	}
+
+	if wt.GetRoute() != nil && wt.GetRoute().GetCertificateSecretRef() != nil {
+		if err := addSecretResourceVersionAsEnvVar(pts, wt, client, *wt.GetRoute().GetCertificateSecretRef(), "ROUTE_CERT"); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 

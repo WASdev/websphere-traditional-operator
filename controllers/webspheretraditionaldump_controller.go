@@ -92,7 +92,8 @@ func (r *ReconcileWebsphereTraditionalDump) Reconcile(ctx context.Context, reque
 	//PROFILE_NAME := "AppSrv01"
 	//NODE_NAME := "DefaultNode01"
 	SERVER_NAME := "server1"
-	dumpFolder := "/serviceability/" + pod.Namespace + "/" + pod.Name
+	dumpFolder := "/serviceability"
+	//dumpFolder := "/serviceability/" + pod.Namespace + "/" + pod.Name
 	//dumpFileName := dumpFolder + "/" + time.Format("2006-01-02_15:04:05") + ".zip"
 	dumpCmd := "mkdir -p " + dumpFolder + " &&  wsadmin.sh -user" + "wsadmin" + "-password" + "PASSWORD" + " -c " + "\"" + "set jvm [" + "\\" + "$AdminControl completeObjectName WebSphere:type=JVM,process=" + SERVER_NAME + ",*]" + "\""
 	if len(instance.Spec.Include) > 0 {

@@ -156,13 +156,13 @@ func (r *ReconcileWebsphereTraditionalTrace) Reconcile(ctx context.Context, requ
 		maxFiles := 5
 		traceOutputDir := serviceabilityDir + "/" + podNamespace + "/" + podName + "/" + "trace.log"
 		if instance.Spec.MaxFileSize != nil {
-			 maxFileSize=(int(*instance.Spec.MaxFileSize))
+			maxFileSize = (int(*instance.Spec.MaxFileSize))
 		}
 		if instance.Spec.MaxFiles != nil {
-			 maxFiles=(int(*instance.Spec.MaxFiles))
+			maxFiles = (int(*instance.Spec.MaxFiles))
 		}
 		traceConfig := "wsadmin.sh -user" + "wsadmin" + "-password" + "PASSWORD" + "-c" + "\"" + "set server [" + "\\" + "$AdminConfig getid /Cell:" + PROFILE_NAME + "/Node:" + NODE_NAME + "/Server:" + SERVER_NAME + "/]" + "\"" + "-c" + "\"" + "set ts [" + "\\" + "$AdminControl completeObjectName WebSphere:type=TraceService,process=" + SERVER_NAME + ",*]" + "\"" + "-c" + "'" + "$AdminControl invoke $ts setTraceOutputToFile {" + traceOutputDir + "\"" + strconv.Itoa(maxFileSize) + "\"" + "\"" + strconv.Itoa(maxFiles) + "\"" + "basic}" + "'" + "-c" + "'" + "$AdminControl setAttribute $ts traceSpecification instance.Spec.TraceSpecification" + "'"
-		
+
 		_, err = utils.ExecuteCommandInContainer(r.RestConfig, podName, podNamespace, "app", []string{"/bin/sh", "-c", "mkdir -p " + traceOutputDir + " && echo '" + traceConfig + "' > " + traceConfigFile})
 		if err != nil {
 			reqLogger.Error(err, "Encountered error while setting up trace for pod "+podName+" in namespace "+podNamespace)
