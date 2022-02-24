@@ -10,17 +10,318 @@ spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
-    - description: WebsphereTraditionalApplication is the Schema for the webspheretraditionalapplications
-        API
-      displayName: Websphere Traditional Application
+    - description: Represents the deployment of a Websphere Traditional application
+      displayName: WebsphereTraditionalApplication
       kind: WebsphereTraditionalApplication
       name: webspheretraditionalapplications.apps.webspheretraditional.io.ibm
+      resources:
+      - kind: Deployment
+        name: ""
+        version: v1
+      - kind: HorizontalPodAutoscaler
+        name: ""
+        version: v1
+      - kind: Route
+        name: ""
+        version: v1
+      - kind: Secret
+        name: ""
+        version: v1
+      - kind: Service
+        name: ""
+        version: v1
+      - kind: ServiceAccount
+        name: ""
+        version: v1
+      - kind: StatefulSet
+        name: ""
+        version: v1
+      specDescriptors:
+      - description: Application image to deploy.
+        displayName: Application Image
+        path: applicationImage
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Required field for autoscaling. Upper limit for the number of
+          pods that can be set by the autoscaler. Parameter .spec.resources.requests.cpu
+          must also be specified.
+        displayName: Max Replicas
+        path: autoscaling.maxReplicas
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:number
+      - description: Name of the application. Defaults to the name of this custom
+          resource.
+        displayName: Application Name
+        path: applicationName
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Lower limit for the number of pods that can be set by the autoscaler.
+        displayName: Min Replicas
+        path: autoscaling.minReplicas
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:number
+      - description: Version of the application.
+        displayName: Application Version
+        path: applicationVersion
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Target average CPU utilization, represented as a percentage of
+          requested CPU, over all the pods.
+        displayName: Target CPU Utilization Percentage
+        path: autoscaling.targetCPUUtilizationPercentage
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:number
+      - description: Policy for pulling container images. Defaults to IfNotPresent.
+        displayName: Pull Policy
+        path: pullPolicy
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:imagePullPolicy
+      - description: Name of the Secret to use to pull images from the specified repository.
+          It is not required if the cluster is configured with a global image pull
+          secret.
+        displayName: Pull Secret
+        path: pullSecret
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes:Secret
+      - description: Name of the service account to use for deploying the application.
+          A service account is automatically created if it's not specified.
+        displayName: Service Account Name
+        path: serviceAccountName
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Create Knative resources and use Knative serving.
+        displayName: Create Knative Service
+        path: createKnativeService
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      - description: Expose the application externally via a Route, a Knative Route
+          or an Ingress resource.
+        displayName: Expose
+        path: expose
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      - description: Number of pods to create. Not applicable when .spec.autoscaling
+          or .spec.createKnativeService is specified.
+        displayName: Replicas
+        path: replicas
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:podCount
+      - description: The port exposed by the container.
+        displayName: Service Port
+        path: service.port
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:number
+      - displayName: Auto Scaling
+        path: autoscaling
+      - displayName: Service Type
+        path: service.type
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Resource requests and limits for the application container.
+        displayName: Resource Requirements
+        path: resources
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:resourceRequirements
+      - description: Node proxies this port into your service.
+        displayName: Node Port
+        path: service.nodePort
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:number
+      - displayName: Probes
+        path: probes
+      - description: The name for the port exposed by the container.
+        displayName: Port Name
+        path: service.portName
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - displayName: Deployment
+        path: deployment
+      - description: Annotations to be added to the service.
+        displayName: Service Annotations
+        path: service.annotations
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: The port that the operator assigns to containers inside pods.
+          Defaults to the value of .spec.service.port.
+        displayName: Target Port
+        path: service.targetPort
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:number
+      - displayName: StatefulSet
+        path: statefulSet
+      - displayName: Service
+        path: service
+      - description: 'A name of a secret that already contains TLS key, certificate
+          and CA to be mounted in the pod. The following keys are valid in the secret:
+          ca.crt, tls.crt, and tls.key.'
+        displayName: Certificate Secret Reference
+        path: service.certificateSecretRef
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - displayName: Route
+        path: route
+      - description: An array consisting of service ports.
+        displayName: Ports
+        path: service.ports
+      - description: Expose the application as a bindable service. Defaults to false.
+        displayName: Bindable
+        path: service.bindable
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      - displayName: Serviceability
+        path: serviceability
+      - displayName: Single sign-on
+        path: sso
+      - displayName: Monitoring
+        path: monitoring
+      - description: An array of environment variables for the application container.
+        displayName: Environment Variables
+        path: env
+      - description: Specifies the strategy to replace old deployment pods with new
+          pods.
+        displayName: Deployment Update Strategy
+        path: deployment.updateStrategy
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:updateStrategy
+      - description: List of sources to populate environment variables in the application
+          container.
+        displayName: Environment Variables from Sources
+        path: envFrom
+      - description: Represents a volume with data that is accessible to the application
+          container.
+        displayName: Volumes
+        path: volumes
+      - description: Specifies the strategy to replace old StatefulSet pods with new
+          pods.
+        displayName: StatefulSet Update Strategy
+        path: statefulSet.updateStrategy
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Represents where to mount the volumes into the application container.
+        displayName: Volume Mounts
+        path: volumeMounts
+      - description: List of containers to run before other containers in a pod.
+        displayName: Init Containers
+        path: initContainers
+      - displayName: Storage
+        path: statefulSet.storage
+      - description: List of sidecar containers. These are additional containers to
+          be added to the pods.
+        displayName: Sidecar Containers
+        path: sidecarContainers
+      - description: A convenient field to set the size of the persisted storage.
+        displayName: Storage Size
+        path: statefulSet.storage.size
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - displayName: Affinity
+        path: affinity
+      - description: The directory inside the container where this persisted storage
+          will be bound to.
+        displayName: Storage Mount Path
+        path: statefulSet.storage.mountPath
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: A YAML object that represents a volumeClaimTemplate component
+          of a StatefulSet.
+        displayName: Storage Volume Claim Template
+        path: statefulSet.storage.volumeClaimTemplate
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:PersistentVolumeClaim
+      - description: Labels to set on ServiceMonitor.
+        displayName: Monitoring Labels
+        path: monitoring.labels
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: A YAML snippet representing an array of Endpoint component from
+          ServiceMonitor.
+        displayName: Monitoring Endpoints
+        path: monitoring.endpoints
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:endpointList
+      - description: Controls which nodes the pod are scheduled to run on, based on
+          labels on the node.
+        displayName: Node Affinity
+        path: affinity.nodeAffinity
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:nodeAffinity
+      - description: Controls the nodes the pod are scheduled to run on, based on
+          labels on the pods that are already running on the node.
+        displayName: Pod Affinity
+        path: affinity.podAffinity
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:podAffinity
+      - description: Enables the ability to prevent running a pod on the same node
+          as another pod.
+        displayName: Pod Anti Affinity
+        path: affinity.podAntiAffinity
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:podAntiAffinity
+      - description: A YAML object that contains a set of required labels and their
+          values.
+        displayName: Node Affinity Labels
+        path: affinity.nodeAffinityLabels
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Annotations to be added to the Route.
+        displayName: Route Annotations
+        path: route.annotations
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Hostname to be used for the Route.
+        displayName: Route Host
+        path: route.host
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Path to be used for Route.
+        displayName: Route Path
+        path: route.path
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: 'A name of a secret that already contains TLS key, certificate
+          and CA to be used in the route. It can also contain destination CA certificate.
+          The following keys are valid in the secret: ca.crt, destCA.crt, tls.crt,
+          and tls.key.'
+        displayName: Certificate Secret Reference
+        path: route.certificateSecretRef
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: TLS termination policy. Can be one of edge, reencrypt and passthrough.
+        displayName: Termination
+        path: route.termination
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: HTTP traffic policy with TLS enabled. Can be one of Allow, Redirect
+          and None.
+        displayName: Insecure Edge Termination Policy
+        path: route.insecureEdgeTerminationPolicy
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Periodic probe of container liveness. Container will be restarted
+          if the probe fails.
+        displayName: Liveness Probe
+        path: probes.liveness
+      - description: Periodic probe of container service readiness. Container will
+          be removed from service endpoints if the probe fails.
+        displayName: Readiness Probe
+        path: probes.readiness
+      - description: Probe to determine successful initialization. If specified, other
+          probes are not executed until this completes successfully.
+        displayName: Startup Probe
+        path: probes.startup
+      statusDescriptors:
+      - displayName: Service Binding
+        path: binding
+      - displayName: Status Conditions
+        path: conditions
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes.conditions
       version: v1alpha1
   description: Deploy and manage applications running on Websphere Traditional
   displayName: Websphere Traditional Operator
   icon:
-  - base64data: ""
-    mediatype: ""
+  - base64data: PHN2ZyBpZD0iV2Vic3BoZXJlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2aWV3Qm94PSIwIDAgMzIgMzIiPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iaHAwODg5eHJiYSIgeDE9Ii01NjIyLjE2IiB5MT0iLTU1ODEuNDUxIiB4Mj0iLTU2MjIuMTYiIHkyPSItNTYwOC41NSIgZ3JhZGllbnRUcmFuc2Zvcm09InJvdGF0ZSgtOTAgLTU1OTEgLTExLjk5OSkiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj48c3RvcCBvZmZzZXQ9Ii4wMyIgc3RvcC1jb2xvcj0iI2ZmZiIgc3RvcC1vcGFjaXR5PSIwIi8+PHN0b3Agb2Zmc2V0PSIuNCIgc3RvcC1jb2xvcj0iI2ZmZiIvPjwvbGluZWFyR3JhZGllbnQ+PGxpbmVhckdyYWRpZW50IGlkPSJzcnNlOXF1ZnFjIiB4MT0iLTI2MzIuMTYiIHkxPSItMTE3My40NTEiIHgyPSItMjYzMi4xNiIgeTI9Ii0xMjAwLjU1IiBncmFkaWVudFRyYW5zZm9ybT0ibWF0cml4KDAgMSAxIDAgMTIwMy4wMDEgMjY0NC45OTkpIiB4bGluazpocmVmPSIjaHAwODg5eHJiYSIvPjxsaW5lYXJHcmFkaWVudCBpZD0ibDFwMnZ1NXFxYiIgeDE9Ii0zNDc0LjUxIiB5MT0iLTU4ODAuMzY3IiB4Mj0iLTM0NjQuMDE1IiB5Mj0iLTU4NjIuMTg5IiBncmFkaWVudFRyYW5zZm9ybT0ic2NhbGUoMSAtMSkgcm90YXRlKDQ1IC04ODAwLjg2NSAxMjYwLjk2MikiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj48c3RvcCBvZmZzZXQ9Ii4xNSIvPjxzdG9wIG9mZnNldD0iLjQ5IiBzdG9wLWNvbG9yPSIjZmZmIi8+PC9saW5lYXJHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9InQyc2R1N2lsbmQiIHgxPSItNDQ3Ny4xODgiIHkxPSItNjQ5LjE5MSIgeDI9Ii00NDY2LjY5MyIgeTI9Ii02MzEuMDE0IiBncmFkaWVudFRyYW5zZm9ybT0ic2NhbGUoLTEgMSkgcm90YXRlKDQ1IC0zMDQxLjM3MyA1MDY0LjgzNikiIHhsaW5rOmhyZWY9IiNsMXAydnU1cXFiIi8+PGxpbmVhckdyYWRpZW50IGlkPSJoZ2ZmZXQ5ZW1mIiB4MT0iLTU0NjUiIHkxPSItNTQzMyIgeDI9Ii01NDMzIiB5Mj0iLTU0NjUiIGdyYWRpZW50VHJhbnNmb3JtPSJtYXRyaXgoMSAwIDAgLTEgNTQ2NSAtNTQzMykiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj48c3RvcCBvZmZzZXQ9Ii4xIiBzdG9wLWNvbG9yPSIjYTU2ZWZmIi8+PHN0b3Agb2Zmc2V0PSIuOSIgc3RvcC1jb2xvcj0iIzBmNjJmZSIvPjwvbGluZWFyR3JhZGllbnQ+PG1hc2sgaWQ9Im82Z3Y0Y3VmMWUiIHg9IjAiIHk9IjAiIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgbWFza1VuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTTE2IDIyYTIyLjc0IDIyLjc0IDAgMCAxLTEzLjU1LTQuMDg4bDEuMjEyLTEuNTkxQTIwLjcxNiAyMC43MTYgMCAwIDAgMTYgMjBhMjAuNzEgMjAuNzEgMCAwIDAgMTIuMzM3LTMuNjc5bDEuMjEyIDEuNTkxQTIyLjczIDIyLjczIDAgMCAxIDE2IDIyeiIgc3R5bGU9ImZpbGw6dXJsKCNocDA4ODl4cmJhKSIvPjxwYXRoIGQ9Ik0yOC4zMzggMTUuNjc5QTIwLjcxNiAyMC43MTYgMCAwIDAgMTYgMTJhMjAuNzEgMjAuNzEgMCAwIDAtMTIuMzM3IDMuNjc5bC0xLjIxMi0xLjU5MUEyMi43MyAyMi43MyAwIDAgMSAxNiAxMGEyMi43NCAyMi43NCAwIDAgMSAxMy41NSA0LjA4OHoiIHN0eWxlPSJmaWxsOnVybCgjc3JzZTlxdWZxYykiLz48cGF0aCBkPSJNNi4xIDI1LjlBMTQgMTQgMCAwIDEgMjEuODU1IDMuMjhMMjEuMDIgNS4xYTEyIDEyIDAgMCAwLTEzLjUgMTkuMzg5eiIgc3R5bGU9ImZpbGw6dXJsKCNsMXAydnU1cXFiKSIvPjxwYXRoIGQ9Ik0xNS45NzEgMjkuOTkzYTEzLjkxNiAxMy45MTYgMCAwIDEtNS44MjYtMS4yNzNsLjgzNS0xLjgyQTEyIDEyIDAgMCAwIDI0LjQ4NSA3LjUxNUwyNS45IDYuMWExMy45OTMgMTMuOTkzIDAgMCAxLTkuOTI4IDIzLjg5MnoiIHN0eWxlPSJmaWxsOnVybCgjdDJzZHU3aWxuZCkiLz48cGF0aCBzdHlsZT0iZmlsbDojZmZmIiBkPSJNMTUgM2gydjI2aC0yeiIvPjwvbWFzaz48L2RlZnM+PGcgc3R5bGU9Im1hc2s6dXJsKCNvNmd2NGN1ZjFlKSI+PHBhdGggdHJhbnNmb3JtPSJyb3RhdGUoLTkwIDE2IDE2KSIgc3R5bGU9ImZpbGw6dXJsKCNoZ2ZmZXQ5ZW1mKSIgZD0iTTAgMGgzMnYzMkgweiIvPjwvZz48Y2lyY2xlIGN4PSI3IiBjeT0iMjYiIHI9IjIiIHN0eWxlPSJmaWxsOiMwMDFkNmMiLz48Y2lyY2xlIGN4PSIyNSIgY3k9IjYiIHI9IjIiIHN0eWxlPSJmaWxsOiMwMDFkNmMiLz48L3N2Zz4=
+    mediatype: image/svg+xml
   install:
     spec:
       deployments: null
