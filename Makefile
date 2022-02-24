@@ -5,6 +5,10 @@
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
 VERSION ?= 0.0.1
 
+#OPERATOR_SDK_RELEASE_VERSION
+#Specify the version of the operator-sdk to install for make operations
+OPERATOR_SDK_RELEASE_VERSION ?= v1.6.4
+
 # CHANNELS define the bundle channels used in the bundle.
 # Add a new line here if you would like to change its default config. (E.g CHANNELS = "candidate,fast,stable")
 # To re-generate a bundle for other specific channels without changing the standard setup, you can:
@@ -64,9 +68,11 @@ BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:$(VVERSION)
 endif
 
 # Image URL to use all building/pushing image targets
-IMG ?= websphere-traditional-operator-system/example:latest
+IMG ?= websphere-traditional-operator-system/operator:latest
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.22
+
+CRD_OPTIONS ?= "crd:generateEmbeddedObjectMeta=true"
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -109,7 +115,7 @@ help: ## Display this help.
 ##@ Development
 
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
-	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
@@ -143,11 +149,24 @@ docker-build: test ## Build docker image with the manager.
 docker-push: ## Push docker image with the manager.
 	$(CONTAINER_COMMAND) push --tls-verify=$(TLS_VERIFY) ${FULL_IMAGE_TARGET}
 
+setup-manifest:
+	./scripts/installers/install-manifest-tool.sh
+
+setup-operator-sdk: ## Ensure Operator SDK is installed
+	./scripts/installers/install-operator-sdk.sh ${OPERATOR_SDK_RELEASE_VERSION}
+
 build-pipeline-manifest: setup-manifest
 	./scripts/build-manifest.sh -u "${PIPELINE_USERNAME}" -p "${PIPELINE_PASSWORD}" --registry "${PIPELINE_REGISTRY}" --image "${PIPELINE_REGISTRY}/${PIPELINE_OPERATOR_IMAGE}"	--target "${RELEASE_TARGET}"
 
-setup-manifest:
-	./scripts/installers/install-manifest-tool.sh
+test-pipeline-e2e:
+	./scripts/pipeline/fyre-e2e.sh -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}" \
+                     --cluster-url "${CLUSTER_URL}" --cluster-token "${CLUSTER_TOKEN}" \
+                     --registry-name "${PIPELINE_REGISTRY}" --registry-image "${PIPELINE_OPERATOR_IMAGE}" \
+                     --registry-user "${PIPELINE_USERNAME}" --registry-password "${PIPELINE_PASSWORD}" \
+                     --test-tag "${TRAVIS_BUILD_NUMBER}" --release "${RELEASE_TARGET}"			
+
+bundle-pipeline:
+	./scripts/bundle-release.sh -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}" --image "${PIPELINE_REGISTRY}/${PIPELINE_OPERATOR_IMAGE}" --release "${RELEASE_TARGET}"
 
 ##@ Deployment
 
@@ -194,7 +213,7 @@ endef
 .PHONY: bundle
 bundle: manifests kustomize ## Generate bundle manifests and metadata, then validate generated files.
 	operator-sdk generate kustomize manifests -q
-	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
+	cd config/manager && $(KUSTOMIZE) edit set image controller=$(FULL_IMAGE_TARGET)
 	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
 	operator-sdk bundle validate ./bundle
 
@@ -205,7 +224,7 @@ bundle-build: ## Build the bundle image.
 
 .PHONY: bundle-push
 bundle-push: ## Push the bundle image.
-	$(MAKE) docker-push FULL_IMAGE_TARGET=$(BUNDLE_IMG)
+	$(CONTAINER_COMMAND) push --tls-verify=$(TLS_VERIFY) $(BUNDLE_IMG)
 
 
 .PHONY: opm

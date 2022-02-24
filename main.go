@@ -1,7 +1,6 @@
 /*
-Copyright 2021.
 
-Licensed under the Apache License, Version 2.0 (the "License");
+Lcensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
@@ -18,22 +17,26 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
-
-	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
-	// to ensure that exec-entrypoint and run can make use of them.
-	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	appswebspheretraditionaliov1alpha1 "github.com/WASdev/websphere-traditional-operator/api/v1alpha1"
+	webspheretraditionalv1alpha1 "github.com/WASdev/websphere-traditional-operator/api/v1alpha1"
 	"github.com/WASdev/websphere-traditional-operator/controllers"
-	//+kubebuilder:scaffold:imports
+
+	"github.com/application-stacks/runtime-component-operator/utils"
+	prometheusv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
+	imagev1 "github.com/openshift/api/image/v1"
+	routev1 "github.com/openshift/api/route/v1"
+	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
+	// +kubebuilder:scaffold:imports
 )
 
 var (
@@ -44,61 +47,82 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
-	utilruntime.Must(appswebspheretraditionaliov1alpha1.AddToScheme(scheme))
-	//+kubebuilder:scaffold:scheme
+	utilruntime.Must(webspheretraditionalv1alpha1.AddToScheme(scheme))
+
+	utilruntime.Must(routev1.AddToScheme(scheme))
+
+	utilruntime.Must(prometheusv1.AddToScheme(scheme))
+
+	utilruntime.Must(imagev1.AddToScheme(scheme))
+
+	utilruntime.Must(servingv1.AddToScheme(scheme))
+	// +kubebuilder:scaffold:scheme
 }
 
 func main() {
-	var metricsAddr string
+	//var metricsAddr string
 	var enableLeaderElection bool
-	var probeAddr string
-	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
-	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
-	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
-		"Enable leader election for controller manager. "+
-			"Enabling this will ensure there is only one active controller manager.")
-	opts := zap.Options{
-		Development: true,
-	}
-	opts.BindFlags(flag.CommandLine)
+	//flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
+	//flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
+	//		"Enable leader election for controller manager. "+
+	//			"Enabling this will ensure there is only one active controller manager.")
 	flag.Parse()
 
-	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
+	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
+
+	// see https://github.com/operator-framework/operator-sdk/issues/1813
+	leaseDuration := 30 * time.Second
+	renewDeadline := 20 * time.Second
+
+	//watchNamespace, err := getWatchNamespace()
+	watchNamespace := "websphere-traditional-operator-system"
+
+	//	if err != nil {
+	//		setupLog.Error(err, "unable to get WatchNamespace, "+
+	//			"the manager will watch and manage resources in all Namespaces")
+	//	}
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:                 scheme,
-		MetricsBindAddress:     metricsAddr,
-		Port:                   9443,
-		HealthProbeBindAddress: probeAddr,
-		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "e0fdb275.ibm",
+		Scheme:             scheme,
+		MetricsBindAddress: "0",
+		Port:               9443,
+		LeaderElection:     enableLeaderElection,
+		LeaderElectionID:   "apps.webspheretraditional.io.ibm",
+		LeaseDuration:      &leaseDuration,
+		RenewDeadline:      &renewDeadline,
+		Namespace:          watchNamespace,
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
 
-	if err = (&controllers.WebsphereTraditionalApplicationReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+	if err = (&controllers.ReconcileWebsphereTraditional{
+		ReconcilerBase: utils.NewReconcilerBase(mgr.GetAPIReader(), mgr.GetClient(), mgr.GetScheme(), mgr.GetConfig(), mgr.GetEventRecorderFor("websphere-traditional-operator")),
+		Log:            ctrl.Log.WithName("controllers").WithName("WebsphereTraditionalApplication"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "WebsphereTraditionalApplication")
 		os.Exit(1)
 	}
-	//+kubebuilder:scaffold:builder
-
-	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
-		setupLog.Error(err, "unable to set up health check")
-		os.Exit(1)
-	}
-	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
-		setupLog.Error(err, "unable to set up ready check")
-		os.Exit(1)
-	}
+	// +kubebuilder:scaffold:builder
 
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
+}
+
+// getWatchNamespace returns the Namespace the operator should be watching for changes
+func getWatchNamespace() (string, error) {
+	// WatchNamespaceEnvVar is the constant for env variable WATCH_NAMESPACE
+	// which specifies the Namespace to watch.
+	// An empty value means the operator is running with cluster scope.
+	var watchNamespaceEnvVar = "WATCH_NAMESPACE"
+
+	ns, found := os.LookupEnv(watchNamespaceEnvVar)
+	if !found {
+		return "", fmt.Errorf("%s must be set", watchNamespaceEnvVar)
+	}
+	return ns, nil
 }

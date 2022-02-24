@@ -9,8 +9,10 @@ namespace: websphere-traditional-operator-system
 namePrefix: websphere-traditional-operator-
 
 # Labels to add to all resources and selectors.
-#commonLabels:
-#  someName: someValue
+commonLabels:
+  app.kubernetes.io/instance: websphere-traditional-operator
+  app.kubernetes.io/managed-by: wto
+  app.kubernetes.io/name: websphere-traditonal-operator
 
 bases:
 - ../crd

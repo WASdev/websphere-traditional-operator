@@ -6,16 +6,16 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.7.0
   creationTimestamp: null
-  name: webspheretraditionalapplications.apps.webspheretraditional.io.ibm
+  name: openlibertyapplications.apps.webspheretraditional.io.ibm
 spec:
   group: apps.webspheretraditional.io.ibm
   names:
     kind: WebsphereTraditionalApplication
     listKind: WebsphereTraditionalApplicationList
-    plural: webspheretraditionalapplications
+    plural: openlibertyapplications
     shortNames:
-    - wtapp
-    - wtapps
+    - olapp
+    - olapps
     singular: webspheretraditionalapplication
   scope: Namespaced
   versions:
@@ -50,7 +50,7 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: Represents the deployment of a Websphere Traditional application
+        description: Represents the deployment of an Open Liberty application
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -4173,23 +4173,6 @@ spec:
                           metadata:
                             description: 'Standard object''s metadata. More info:
                               https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata'
-                            properties:
-                              annotations:
-                                additionalProperties:
-                                  type: string
-                                type: object
-                              finalizers:
-                                items:
-                                  type: string
-                                type: array
-                              labels:
-                                additionalProperties:
-                                  type: string
-                                type: object
-                              name:
-                                type: string
-                              namespace:
-                                type: string
                             type: object
                           spec:
                             description: 'Spec defines the desired characteristics
@@ -4889,23 +4872,6 @@ spec:
                               description: May contain labels and annotations that
                                 will be copied into the PVC when creating it. No other
                                 fields are allowed and will be rejected during validation.
-                              properties:
-                                annotations:
-                                  additionalProperties:
-                                    type: string
-                                  type: object
-                                finalizers:
-                                  items:
-                                    type: string
-                                  type: array
-                                labels:
-                                  additionalProperties:
-                                    type: string
-                                  type: object
-                                name:
-                                  type: string
-                                namespace:
-                                  type: string
                               type: object
                             spec:
                               description: The specification for the PersistentVolumeClaim.
