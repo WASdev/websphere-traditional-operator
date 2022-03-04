@@ -58,8 +58,8 @@ const traceFinalizer = "finalizer.webspheretraditionalTraces.apps.webspheretradi
 const traceConfigFile = "/config/configDropins/overrides/add_trace.xml"
 const serviceabilityDir = "/serviceability"
 
-// +kubebuilder:rbac:groups=apps.webspheretraditional.io.ibm,resources=webspheretraditionaltraces;webspheretraditionaltraces/status;webspheretraditionaltraces/finalizers,verbs=*,namespace=websphere-traditional-operator
-// +kubebuilder:rbac:groups=core,resources=pods;pods/exec,verbs=*,namespace=websphere-traditional-operator
+// +kubebuilder:rbac:groups=apps.webspheretraditional.io.ibm,resources=webspheretraditionaltraces;webspheretraditionaltraces/status;webspheretraditionaltraces/finalizers,verbs=*,namespace=websphere-traditional-operator-system
+// +kubebuilder:rbac:groups=core,resources=pods;pods/exec,verbs=*,namespace=websphere-traditional-operator-system
 
 // Reconcile reads that state of the cluster for a WebsphereTraditionalTrace object and makes changes based on the state read
 // and what is in the WebsphereTraditionalTrace.Spec

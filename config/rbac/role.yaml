@@ -30,6 +30,22 @@ rules:
   verbs:
   - '*'
 - apiGroups:
+  - apps.webspheretraditional.io.ibm
+  resources:
+  - webspheretraditionaldumps
+  - webspheretraditionaldumps/finalizers
+  - webspheretraditionaldumps/status
+  verbs:
+  - '*'
+- apiGroups:
+  - apps.webspheretraditional.io.ibm
+  resources:
+  - webspheretraditionaltraces
+  - webspheretraditionaltraces/finalizers
+  - webspheretraditionaltraces/status
+  verbs:
+  - '*'
+- apiGroups:
   - autoscaling
   resources:
   - horizontalpodautoscalers
@@ -43,6 +59,13 @@ rules:
   - secrets
   - serviceaccounts
   - services
+  verbs:
+  - '*'
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/exec
   verbs:
   - '*'
 - apiGroups:

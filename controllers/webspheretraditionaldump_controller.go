@@ -35,8 +35,8 @@ type ReconcileWebsphereTraditionalDump struct {
 	Log        logr.Logger
 }
 
-// +kubebuilder:rbac:groups=apps.webspheretraditional.io.ibm,resources=webspheretraditionaldumps;webspheretraditionaldumps/status;webspheretraditionaldumps/finalizers,verbs=*,namespace=websphere-traditional-operator
-// +kubebuilder:rbac:groups=core,resources=pods;pods/exec,verbs=*,namespace=websphere-traditional-operator
+// +kubebuilder:rbac:groups=apps.webspheretraditional.io.ibm,resources=webspheretraditionaldumps;webspheretraditionaldumps/status;webspheretraditionaldumps/finalizers,verbs=*,namespace=websphere-traditional-operator-system
+// +kubebuilder:rbac:groups=core,resources=pods;pods/exec,verbs=*,namespace=websphere-traditional-operator-system
 
 // Reconcile reads that state of the cluster for a WebsphereTraditionalDump object and makes changes based on the state read
 // and what is in the WebsphereTraditionalDump.Spec
